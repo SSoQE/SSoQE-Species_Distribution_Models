@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="author" content="Anna Walentowitz">
+<meta name="author" content="Dr Anna Walentowitz">
 <meta name="dcterms.date" content="2024-09-20">
 
 <title>Species distribution modelling in R</title>
@@ -91,7 +91,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Author</div>
     <div class="quarto-title-meta-contents">
-             <p>Anna Walentowitz </p>
+             <p>Dr Anna Walentowitz </p>
           </div>
   </div>
     
@@ -113,6 +113,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="aim" class="level2">
 <h2 class="anchored" data-anchor-id="aim">Aim</h2>
 <p>In this session we want to learn how to build a correlative species distribution model (sdm) in R for a single species. We want to predict the current (potential) distribution of a species and in a next step its potential distribution under changed climatic conditions.</p>
+<p>Note: For reasons of simplicity the term realized niche will be used throughout the document although the model might be closer to another niche concept.</p>
 <p>In this example, we want to predict the potential distribution of the herbaceous plant species <em>Arnica montana</em> in Europe now and under climate change. As a model we will use a simple generalised linear model (glm).</p>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
@@ -125,7 +126,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <div class="callout-body-container callout-body">
 <p>The herbaceous plant species <em>Arnica montana</em> (family Asteraceae) is native to Europe and known for its medicinal application. If you want You can find additional information about the species on, for example, <a href="https://powo.science.kew.org/taxon/urn:lsid:ipni.org:names:30090722-2">Plants of the World Online, <em>Arnica montana</em></a>. In the picture below you can see <em>Arnica montana</em> flowering in yellow.</p>
-<p><img src="images/e7776f383aa75dc28b37d5148857a8c2.jpg" class="img-fluid"></p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/e7776f383aa75dc28b37d5148857a8c2.jpg" class="img-fluid quarto-figure quarto-figure-center figure-img" width="183"></p>
+</figure>
+</div>
 </div>
 </div>
 </section>
@@ -368,24 +373,12 @@ Resolution of WorldClim bioclimatic variables.
 <section id="data-quality-check" class="level3">
 <h3 class="anchored" data-anchor-id="data-quality-check">Data quality check</h3>
 <p>Species distribution data from gbif needs to undergo quality control as the input data is based on a multitude of different sources. By downloading only data that has coordinates and is based on human observations we already filtered the occurrence records. The following steps can furthermore be implemented to analyse and enhance data quality.</p>
-<div class="cell" data-warnings="false">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># diplay uncertainty of occurrence records (in meters)</span></span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(gbif_ArnMon, <span class="fu">aes</span>(<span class="at">x =</span> coordinateUncertaintyInMeters)) <span class="sc">+</span></span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">bins =</span> <span class="fl">1e2</span>) <span class="sc">+</span></span>
 <span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
 <span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">trans =</span> <span class="st">"log10"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: Removed 5733 rows containing non-finite outside the scale range
-(`stat_bin()`).</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in scale_y_continuous(trans = "log10"): log-10 transformation
-introduced infinite values.</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: Removed 82 rows containing missing values or values outside the scale range
-(`geom_bar()`).</code></pre>
-</div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -393,50 +386,50 @@ introduced infinite values.</code></pre>
 </figure>
 </div>
 </div>
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># reduce occurrence records with more than 100 meters uncertainty</span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>gbif_ArnMon <span class="ot">&lt;-</span> gbif_ArnMon[<span class="fu">which</span>(gbif_ArnMon<span class="sc">$</span>coordinateUncertaintyInMeters <span class="sc">&lt;</span> <span class="dv">100</span>), ]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># reduce occurrence records with more than 100 meters uncertainty</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>gbif_ArnMon <span class="ot">&lt;-</span> gbif_ArnMon[<span class="fu">which</span>(gbif_ArnMon<span class="sc">$</span>coordinateUncertaintyInMeters <span class="sc">&lt;</span> <span class="dv">100</span>), ]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="pseudo-absences" class="level3">
 <h3 class="anchored" data-anchor-id="pseudo-absences">Pseudo-absences</h3>
 <p>For a simple correlative SDM we already have presence data of <em>Arnica montana</em> but we are missing absences. As we cannot obtain true absences of <em>Arnica montana</em> all over Europe we will create pseudo-absences, which are essentially randomly drawn points across our study area. It is advisable to choose roughly the same number of pseudo-absences and presences.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># randomly sample points</span></span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>background <span class="ot">&lt;-</span> <span class="fu">spatSample</span>(<span class="at">x =</span> bioclim_data,</span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>                         <span class="at">size =</span> <span class="fu">nrow</span>(gbif_ArnMon), <span class="co"># same number as our observed points</span></span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>                         <span class="at">values =</span> <span class="cn">FALSE</span>,           <span class="co"># no need for values</span></span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>                         <span class="at">na.rm =</span> <span class="cn">TRUE</span>,             <span class="co"># no sample from NA cells</span></span>
-<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>                         <span class="at">xy =</span> <span class="cn">TRUE</span>)                <span class="co"># obtain coordinates</span></span>
-<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a><span class="co"># check background data in table and visually</span></span>
-<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(background)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># randomly sample points</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>background <span class="ot">&lt;-</span> <span class="fu">spatSample</span>(<span class="at">x =</span> bioclim_data,</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>                         <span class="at">size =</span> <span class="fu">nrow</span>(gbif_ArnMon), <span class="co"># same number as our observed points</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>                         <span class="at">values =</span> <span class="cn">FALSE</span>,           <span class="co"># no need for values</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>                         <span class="at">na.rm =</span> <span class="cn">TRUE</span>,             <span class="co"># no sample from NA cells</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>                         <span class="at">xy =</span> <span class="cn">TRUE</span>)                <span class="co"># obtain coordinates</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="co"># check background data in table and visually</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(background)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>             x        y
-[1,] 43.979167 65.81250
-[2,] -2.895833 48.27083
-[3,] 16.979167 59.68750
-[4,]  5.229167 35.81250
-[5,] 37.354167 39.31250
-[6,] 32.937500 37.02083</code></pre>
+<pre><code>              x        y
+[1,]  1.7291667 48.10417
+[2,] 38.3958333 39.22917
+[3,] 35.7708333 37.89583
+[4,] 37.3125000 56.81250
+[5,]  6.7291667 46.85417
+[6,] -0.2708333 46.22917</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># plot occurrences and pseudo-absences on our Europe map</span></span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(Europe_map,</span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">axes =</span> <span class="cn">TRUE</span>, </span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>     <span class="at">col =</span> <span class="st">"grey95"</span>,</span>
-<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">"Presences and absences in Europe"</span>)</span>
-<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a><span class="co"># add the background points</span></span>
-<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(background,</span>
-<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">col =</span> <span class="st">"darkgrey"</span>,</span>
-<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>       <span class="at">pch =</span> <span class="dv">1</span>,</span>
-<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>       <span class="at">cex =</span> <span class="fl">0.75</span>)</span>
-<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a><span class="co"># add the points for individual observations</span></span>
-<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(<span class="at">x =</span> gbif_ArnMon<span class="sc">$</span>decimalLongitude, </span>
-<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> gbif_ArnMon<span class="sc">$</span>decimalLatitude, </span>
-<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a>       <span class="at">col =</span> <span class="st">"orange"</span>, </span>
-<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a>       <span class="at">pch =</span> <span class="dv">16</span>, </span>
-<span id="cb19-18"><a href="#cb19-18" aria-hidden="true" tabindex="-1"></a>       <span class="at">cex =</span> <span class="fl">0.5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># plot occurrences and pseudo-absences on our Europe map</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(Europe_map,</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">axes =</span> <span class="cn">TRUE</span>, </span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>     <span class="at">col =</span> <span class="st">"grey95"</span>,</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">"Presences and absences in Europe"</span>)</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="co"># add the background points</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(background,</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">col =</span> <span class="st">"darkgrey"</span>,</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>       <span class="at">pch =</span> <span class="dv">1</span>,</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>       <span class="at">cex =</span> <span class="fl">0.75</span>)</span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a><span class="co"># add the points for individual observations</span></span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(<span class="at">x =</span> gbif_ArnMon<span class="sc">$</span>decimalLongitude, </span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> gbif_ArnMon<span class="sc">$</span>decimalLatitude, </span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>       <span class="at">col =</span> <span class="st">"orange"</span>, </span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>       <span class="at">pch =</span> <span class="dv">16</span>, </span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a>       <span class="at">cex =</span> <span class="fl">0.5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -447,32 +440,32 @@ introduced infinite values.</code></pre>
 </div>
 <p>Join pseudo-absences into one dataset with presences. We will mark presences with “1” and pseudo-absences with “0”.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># get coordinates of presences</span></span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>ArnMon_presences <span class="ot">&lt;-</span> gbif_ArnMon[, <span class="fu">c</span>(<span class="st">"decimalLongitude"</span>, <span class="st">"decimalLatitude"</span>)]</span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(ArnMon_presences) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"longitude"</span>, <span class="st">"latitude"</span>)</span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Add column indicating presence</span></span>
-<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>ArnMon_presences<span class="sc">$</span>pa <span class="ot">&lt;-</span> <span class="dv">1</span></span>
-<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert background data to a data frame</span></span>
-<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>ArnMon_absences <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(background)</span>
-<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(ArnMon_absences) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"longitude"</span>, <span class="st">"latitude"</span>)</span>
-<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Add column indicating absence</span></span>
-<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>ArnMon_absences<span class="sc">$</span>pa <span class="ot">&lt;-</span> <span class="dv">0</span></span>
-<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a>ArnMon_PA <span class="ot">&lt;-</span> <span class="fu">rbind</span>(ArnMon_presences, ArnMon_absences)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># get coordinates of presences</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>ArnMon_presences <span class="ot">&lt;-</span> gbif_ArnMon[, <span class="fu">c</span>(<span class="st">"decimalLongitude"</span>, <span class="st">"decimalLatitude"</span>)]</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(ArnMon_presences) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"longitude"</span>, <span class="st">"latitude"</span>)</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Add column indicating presence</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>ArnMon_presences<span class="sc">$</span>pa <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert background data to a data frame</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>ArnMon_absences <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(background)</span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(ArnMon_absences) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"longitude"</span>, <span class="st">"latitude"</span>)</span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Add column indicating absence</span></span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>ArnMon_absences<span class="sc">$</span>pa <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>ArnMon_PA <span class="ot">&lt;-</span> <span class="fu">rbind</span>(ArnMon_presences, ArnMon_absences)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Add environmental data to the dataframe with presences and pseudo-absences of <em>Arnica montana</em>.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># extract environmental information for sample points</span></span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>bioclim_df <span class="ot">&lt;-</span> terra<span class="sc">::</span><span class="fu">extract</span>(<span class="at">x =</span> bioclim_data,</span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>                      <span class="at">y =</span> ArnMon_PA[, <span class="fu">c</span>(<span class="st">"longitude"</span>, <span class="st">"latitude"</span>)],</span>
-<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>                      <span class="at">ID =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a><span class="co"># join environmental and species' data into one data frame</span></span>
-<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>ArnMon_complete_df <span class="ot">&lt;-</span> <span class="fu">cbind</span>(ArnMon_PA, bioclim_df)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># extract environmental information for sample points</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>bioclim_df <span class="ot">&lt;-</span> terra<span class="sc">::</span><span class="fu">extract</span>(<span class="at">x =</span> bioclim_data,</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>                      <span class="at">y =</span> ArnMon_PA[, <span class="fu">c</span>(<span class="st">"longitude"</span>, <span class="st">"latitude"</span>)],</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>                      <span class="at">ID =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a><span class="co"># join environmental and species' data into one data frame</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>ArnMon_complete_df <span class="ot">&lt;-</span> <span class="fu">cbind</span>(ArnMon_PA, bioclim_df)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 </section>
@@ -480,12 +473,12 @@ introduced infinite values.</code></pre>
 <h2 class="anchored" data-anchor-id="training-and-test-data">Training and test data</h2>
 <p>In the following we will split our dataset into two parts. We will use 80% of the data for model training and set aside 20% of the data for testing.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create 5 folds</span></span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>ArnMon_folds <span class="ot">&lt;-</span> <span class="fu">folds</span>(<span class="at">x =</span> ArnMon_complete_df,</span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>                      <span class="at">k =</span> <span class="dv">5</span>,</span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>                      <span class="at">by =</span> ArnMon_complete_df<span class="sc">$</span>pa)</span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a><span class="co"># check the number of samples per fold</span></span>
-<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(ArnMon_folds)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create 5 folds</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>ArnMon_folds <span class="ot">&lt;-</span> <span class="fu">folds</span>(<span class="at">x =</span> ArnMon_complete_df,</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>                      <span class="at">k =</span> <span class="dv">5</span>,</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>                      <span class="at">by =</span> ArnMon_complete_df<span class="sc">$</span>pa)</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a><span class="co"># check the number of samples per fold</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(ArnMon_folds)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>ArnMon_folds
   1   2   3   4   5 
@@ -494,8 +487,8 @@ introduced infinite values.</code></pre>
 </div>
 <p>Now we define which set of points will be training and testing data. Lets make folds 1 to 4 training data and fold 5 testing data.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>testing_points   <span class="ot">&lt;-</span> ArnMon_complete_df[ArnMon_folds <span class="sc">==</span> <span class="dv">5</span>, ]</span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>training_points  <span class="ot">&lt;-</span> ArnMon_complete_df[ArnMon_folds <span class="sc">!=</span> <span class="dv">5</span>, ]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>testing_points   <span class="ot">&lt;-</span> ArnMon_complete_df[ArnMon_folds <span class="sc">==</span> <span class="dv">5</span>, ]</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>training_points  <span class="ot">&lt;-</span> ArnMon_complete_df[ArnMon_folds <span class="sc">!=</span> <span class="dv">5</span>, ]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 </section>
@@ -505,10 +498,10 @@ introduced infinite values.</code></pre>
 <h2 class="anchored" data-anchor-id="build-generalized-linear-model-glm">Build generalized linear model (GLM)</h2>
 <p>The GLM uses the presences and pseudo-absences as the response variable and uses the bioclimatic variables as predictors. As the presences and pseudo-absences only consist of zeros and ones we use the family “binomial”.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># build GLM</span></span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>glm_ArnMon <span class="ot">&lt;-</span> <span class="fu">glm</span>(pa <span class="sc">~</span> .,</span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>                  <span class="at">data =</span> training_points[,<span class="sc">-</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>)],</span>
-<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>                  <span class="at">family =</span> <span class="fu">binomial</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># build GLM</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>glm_ArnMon <span class="ot">&lt;-</span> <span class="fu">glm</span>(pa <span class="sc">~</span> .,</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>                  <span class="at">data =</span> training_points[,<span class="sc">-</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>)],</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>                  <span class="at">family =</span> <span class="fu">binomial</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 </section>
@@ -517,11 +510,11 @@ introduced infinite values.</code></pre>
 <section id="prediction-based-on-glm" class="level2">
 <h2 class="anchored" data-anchor-id="prediction-based-on-glm">Prediction based on GLM</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># spatial prediction of GLM into space </span></span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>predict_ArnMon <span class="ot">&lt;-</span> <span class="fu">predict</span>(bioclim_data, glm_ArnMon, <span class="at">type =</span> <span class="st">"response"</span>)</span>
-<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a><span class="co"># plot data to check the outcome</span></span>
-<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(predict_ArnMon)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># spatial prediction of GLM into space </span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>predict_ArnMon <span class="ot">&lt;-</span> <span class="fu">predict</span>(bioclim_data, glm_ArnMon, <span class="at">type =</span> <span class="st">"response"</span>)</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a><span class="co"># plot data to check the outcome</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(predict_ArnMon)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -534,32 +527,32 @@ introduced infinite values.</code></pre>
 <section id="model-evaluation" class="level2">
 <h2 class="anchored" data-anchor-id="model-evaluation">Model evaluation</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Use testing data for model evaluation</span></span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>glm_eval <span class="ot">&lt;-</span> <span class="fu">pa_evaluate</span>(<span class="at">p =</span> testing_points[testing_points<span class="sc">$</span>pa <span class="sc">==</span> <span class="dv">1</span>, ],</span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>                        <span class="at">a =</span> testing_points[testing_points<span class="sc">$</span>pa <span class="sc">==</span> <span class="dv">0</span>, ],</span>
-<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>                        <span class="at">model =</span> glm_ArnMon,</span>
-<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>                        <span class="at">type =</span> <span class="st">"response"</span>)</span>
-<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a><span class="co"># print evaluation measures</span></span>
-<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>glm_eval</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Use testing data for model evaluation</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>glm_eval <span class="ot">&lt;-</span> <span class="fu">pa_evaluate</span>(<span class="at">p =</span> testing_points[testing_points<span class="sc">$</span>pa <span class="sc">==</span> <span class="dv">1</span>, ],</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>                        <span class="at">a =</span> testing_points[testing_points<span class="sc">$</span>pa <span class="sc">==</span> <span class="dv">0</span>, ],</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>                        <span class="at">model =</span> glm_ArnMon,</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>                        <span class="at">type =</span> <span class="st">"response"</span>)</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a><span class="co"># print evaluation measures</span></span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>glm_eval</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>@stats
    np  na prevalence   auc   cor pcor ODP
-1 184 184        0.5 0.935 0.803    0 0.5
+1 184 184        0.5 0.959 0.822    0 0.5
 
 @thresholds
   max_kappa max_spec_sens no_omission equal_prevalence equal_sens_spec
-1      0.45          0.45       0.213            0.516           0.629
+1     0.622         0.622       0.072            0.505           0.634
 
 @tr_stats
-    treshold kappa CCR  TPR TNR FPR  FNR PPP NPP MCR  OR
-1          0     0 0.5    1   0   1    0 0.5 NaN 0.5 NaN
-2          0     0 0.5    1   0   1    0 0.5 NaN 0.5 NaN
-3          0     0 0.5    1   0   1    0 0.5 NaN 0.5 NaN
-4        ...   ... ...  ... ... ...  ... ... ... ... ...
-296        1  0.01 0.5 0.01   1   0 0.99   1 0.5 0.5 Inf
-297        1     0 0.5    0   1   0    1 NaN 0.5 0.5 NaN
-298        1     0 0.5    0   1   0    1 NaN 0.5 0.5 NaN</code></pre>
+    treshold kappa  CCR  TPR TNR FPR  FNR PPP NPP  MCR  OR
+1          0     0  0.5    1   0   1    0 0.5 NaN  0.5 NaN
+2          0     0  0.5    1   0   1    0 0.5 NaN  0.5 NaN
+3          0     0  0.5    1   0   1    0 0.5 NaN  0.5 NaN
+4        ...   ...  ...  ... ... ...  ... ... ...  ... ...
+287        1  0.01 0.51 0.01   1   0 0.99   1 0.5 0.49 Inf
+288        1     0  0.5    0   1   0    1 NaN 0.5  0.5 NaN
+289        1     0  0.5    0   1   0    1 NaN 0.5  0.5 NaN</code></pre>
 </div>
 </div>
 </section>
@@ -567,40 +560,40 @@ introduced infinite values.</code></pre>
 <h2 class="anchored" data-anchor-id="forecast">Forecast</h2>
 <p>We take the GLM build before to predict the distribution of <em>Arnica montana</em> in 2061-2080 by exchaning the exchanging the bioclimatic variables representing current climatic conditions by data based on climate models. We stick to a resolution of 2.5 degrees if a minute.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># download predicted climate data</span></span>
-<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>forecast_data <span class="ot">&lt;-</span> <span class="fu">cmip6_world</span>(<span class="at">model =</span> <span class="st">"MPI-ESM1-2-HR"</span>,</span>
-<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>                             <span class="at">ssp =</span> <span class="st">"245"</span>,</span>
-<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>                             <span class="at">time =</span> <span class="st">"2061-2080"</span>,</span>
-<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>                             <span class="at">var =</span> <span class="st">"bioc"</span>,</span>
-<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>                             <span class="at">res =</span> <span class="fl">2.5</span>,</span>
-<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>                             <span class="at">path =</span> <span class="st">"data"</span>)</span>
-<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a><span class="co"># use the same names from bioclim_data also for the forecasted climate data</span></span>
-<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(forecast_data) <span class="ot">&lt;-</span> <span class="fu">names</span>(bioclim_data)</span>
-<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a><span class="co"># crop forecast data to European extent</span></span>
-<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a>forecast_data <span class="ot">&lt;-</span> <span class="fu">crop</span>(<span class="at">x =</span> forecast_data, <span class="at">y =</span> Europe_ext)</span>
-<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-15"><a href="#cb29-15" aria-hidden="true" tabindex="-1"></a><span class="co"># predict presence from model with forecasted climate data</span></span>
-<span id="cb29-16"><a href="#cb29-16" aria-hidden="true" tabindex="-1"></a>forecast_presence <span class="ot">&lt;-</span> <span class="fu">predict</span>(forecast_data, glm_ArnMon, <span class="at">type =</span> <span class="st">"response"</span>)</span>
-<span id="cb29-17"><a href="#cb29-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-18"><a href="#cb29-18" aria-hidden="true" tabindex="-1"></a><span class="co"># like always plot the results to check the outcome</span></span>
-<span id="cb29-19"><a href="#cb29-19" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(Europe_map, </span>
-<span id="cb29-20"><a href="#cb29-20" aria-hidden="true" tabindex="-1"></a>     <span class="at">axes =</span> <span class="cn">TRUE</span>, </span>
-<span id="cb29-21"><a href="#cb29-21" aria-hidden="true" tabindex="-1"></a>     <span class="at">col =</span> <span class="st">"grey95"</span>)</span>
-<span id="cb29-22"><a href="#cb29-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-23"><a href="#cb29-23" aria-hidden="true" tabindex="-1"></a><span class="co"># add model probabilities</span></span>
-<span id="cb29-24"><a href="#cb29-24" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(forecast_presence, <span class="at">add =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb29-25"><a href="#cb29-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-26"><a href="#cb29-26" aria-hidden="true" tabindex="-1"></a><span class="co"># redraw those country borders</span></span>
-<span id="cb29-27"><a href="#cb29-27" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(Europe_map, <span class="at">add =</span> <span class="cn">TRUE</span>, <span class="at">border =</span> <span class="st">"grey5"</span>)</span>
-<span id="cb29-28"><a href="#cb29-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-29"><a href="#cb29-29" aria-hidden="true" tabindex="-1"></a><span class="co"># add original observations</span></span>
-<span id="cb29-30"><a href="#cb29-30" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(<span class="at">x =</span> ArnMon_presences<span class="sc">$</span>longitude, </span>
-<span id="cb29-31"><a href="#cb29-31" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> ArnMon_presences<span class="sc">$</span>latitude, </span>
-<span id="cb29-32"><a href="#cb29-32" aria-hidden="true" tabindex="-1"></a>       <span class="at">col =</span> <span class="st">"black"</span>, </span>
-<span id="cb29-33"><a href="#cb29-33" aria-hidden="true" tabindex="-1"></a>       <span class="at">pch =</span> <span class="st">"+"</span>, </span>
-<span id="cb29-34"><a href="#cb29-34" aria-hidden="true" tabindex="-1"></a>       <span class="at">cex =</span> <span class="fl">0.75</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># download predicted climate data</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>forecast_data <span class="ot">&lt;-</span> <span class="fu">cmip6_world</span>(<span class="at">model =</span> <span class="st">"MPI-ESM1-2-HR"</span>,</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>                             <span class="at">ssp =</span> <span class="st">"245"</span>,</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>                             <span class="at">time =</span> <span class="st">"2061-2080"</span>,</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>                             <span class="at">var =</span> <span class="st">"bioc"</span>,</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>                             <span class="at">res =</span> <span class="fl">2.5</span>,</span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>                             <span class="at">path =</span> <span class="st">"data"</span>)</span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a><span class="co"># use the same names from bioclim_data also for the forecasted climate data</span></span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(forecast_data) <span class="ot">&lt;-</span> <span class="fu">names</span>(bioclim_data)</span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a><span class="co"># crop forecast data to European extent</span></span>
+<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a>forecast_data <span class="ot">&lt;-</span> <span class="fu">crop</span>(<span class="at">x =</span> forecast_data, <span class="at">y =</span> Europe_ext)</span>
+<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-15"><a href="#cb26-15" aria-hidden="true" tabindex="-1"></a><span class="co"># predict presence from model with forecasted climate data</span></span>
+<span id="cb26-16"><a href="#cb26-16" aria-hidden="true" tabindex="-1"></a>forecast_presence <span class="ot">&lt;-</span> <span class="fu">predict</span>(forecast_data, glm_ArnMon, <span class="at">type =</span> <span class="st">"response"</span>)</span>
+<span id="cb26-17"><a href="#cb26-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-18"><a href="#cb26-18" aria-hidden="true" tabindex="-1"></a><span class="co"># like always plot the results to check the outcome</span></span>
+<span id="cb26-19"><a href="#cb26-19" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(Europe_map, </span>
+<span id="cb26-20"><a href="#cb26-20" aria-hidden="true" tabindex="-1"></a>     <span class="at">axes =</span> <span class="cn">TRUE</span>, </span>
+<span id="cb26-21"><a href="#cb26-21" aria-hidden="true" tabindex="-1"></a>     <span class="at">col =</span> <span class="st">"grey95"</span>)</span>
+<span id="cb26-22"><a href="#cb26-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-23"><a href="#cb26-23" aria-hidden="true" tabindex="-1"></a><span class="co"># add model probabilities</span></span>
+<span id="cb26-24"><a href="#cb26-24" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(forecast_presence, <span class="at">add =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb26-25"><a href="#cb26-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-26"><a href="#cb26-26" aria-hidden="true" tabindex="-1"></a><span class="co"># redraw those country borders</span></span>
+<span id="cb26-27"><a href="#cb26-27" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(Europe_map, <span class="at">add =</span> <span class="cn">TRUE</span>, <span class="at">border =</span> <span class="st">"grey5"</span>)</span>
+<span id="cb26-28"><a href="#cb26-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-29"><a href="#cb26-29" aria-hidden="true" tabindex="-1"></a><span class="co"># add original observations</span></span>
+<span id="cb26-30"><a href="#cb26-30" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(<span class="at">x =</span> ArnMon_presences<span class="sc">$</span>longitude, </span>
+<span id="cb26-31"><a href="#cb26-31" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> ArnMon_presences<span class="sc">$</span>latitude, </span>
+<span id="cb26-32"><a href="#cb26-32" aria-hidden="true" tabindex="-1"></a>       <span class="at">col =</span> <span class="st">"black"</span>, </span>
+<span id="cb26-33"><a href="#cb26-33" aria-hidden="true" tabindex="-1"></a>       <span class="at">pch =</span> <span class="st">"+"</span>, </span>
+<span id="cb26-34"><a href="#cb26-34" aria-hidden="true" tabindex="-1"></a>       <span class="at">cex =</span> <span class="fl">0.75</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -614,11 +607,11 @@ introduced infinite values.</code></pre>
 <h2 class="anchored" data-anchor-id="binary-predictions">Binary predictions</h2>
 <p>The predicted occurrences for <em>Arnica montana</em> are based on occurrence probabilities ranging between 0 and 1. To communicate our outcome is can help to translate the occurrence probability map into a binary map where we define a cell to be suitable for a species (1) or not (0). To obtain such a map we need to define a threshold that divides those two categories.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co"># use evaluation metrics to define threshold for map of binary predictions </span></span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>glm_threshold <span class="ot">&lt;-</span> glm_eval<span class="sc">@</span>thresholds<span class="sc">$</span>max_spec_sens</span>
-<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a><span class="co"># these are the cells that we defined as potential distribution</span></span>
-<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>predict_ArnMon <span class="sc">&gt;</span> glm_threshold</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># use evaluation metrics to define threshold for map of binary predictions </span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>glm_threshold <span class="ot">&lt;-</span> glm_eval<span class="sc">@</span>thresholds<span class="sc">$</span>max_spec_sens</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a><span class="co"># these are the cells that we defined as potential distribution</span></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>predict_ArnMon <span class="sc">&gt;</span> glm_threshold</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>class       : SpatRaster 
 dimensions  : 888, 1440, 1  (nrow, ncol, nlyr)
@@ -630,51 +623,51 @@ name        :  lyr1
 min value   : FALSE 
 max value   :  TRUE </code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span>
-<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="do">## for current potential distribution</span></span>
-<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(Europe_map, </span>
-<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>     <span class="at">axes =</span> <span class="cn">TRUE</span>, </span>
-<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>     <span class="at">col =</span> <span class="st">"grey95"</span>,</span>
-<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">"Current distribution"</span>)</span>
-<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Only plot areas where probability of occurrence is greater than the threshold</span></span>
-<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(predict_ArnMon <span class="sc">&gt;</span> glm_threshold, </span>
-<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>     <span class="at">add =</span> <span class="cn">TRUE</span>, </span>
-<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a>     <span class="at">legend =</span> <span class="cn">FALSE</span>, </span>
-<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a>     <span class="at">col =</span> <span class="fu">c</span>(<span class="cn">NA</span>, <span class="st">"orange"</span>))</span>
-<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a><span class="co"># And add those observations</span></span>
-<span id="cb32-15"><a href="#cb32-15" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(<span class="at">x =</span> ArnMon_presences<span class="sc">$</span>longitude, </span>
-<span id="cb32-16"><a href="#cb32-16" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> ArnMon_presences<span class="sc">$</span>latitude, </span>
-<span id="cb32-17"><a href="#cb32-17" aria-hidden="true" tabindex="-1"></a>       <span class="at">col =</span> <span class="st">"black"</span>,</span>
-<span id="cb32-18"><a href="#cb32-18" aria-hidden="true" tabindex="-1"></a>       <span class="at">pch =</span> <span class="st">"+"</span>, </span>
-<span id="cb32-19"><a href="#cb32-19" aria-hidden="true" tabindex="-1"></a>       <span class="at">cex =</span> <span class="fl">0.75</span>)</span>
-<span id="cb32-20"><a href="#cb32-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-21"><a href="#cb32-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Redraw those country borders</span></span>
-<span id="cb32-22"><a href="#cb32-22" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(Europe_map, <span class="at">add =</span> <span class="cn">TRUE</span>, <span class="at">border =</span> <span class="st">"grey5"</span>)</span>
-<span id="cb32-23"><a href="#cb32-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-24"><a href="#cb32-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-25"><a href="#cb32-25" aria-hidden="true" tabindex="-1"></a><span class="do">## for future potential distribution</span></span>
-<span id="cb32-26"><a href="#cb32-26" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(Europe_map, </span>
-<span id="cb32-27"><a href="#cb32-27" aria-hidden="true" tabindex="-1"></a>     <span class="at">axes =</span> <span class="cn">TRUE</span>, </span>
-<span id="cb32-28"><a href="#cb32-28" aria-hidden="true" tabindex="-1"></a>     <span class="at">col =</span> <span class="st">"grey95"</span>,</span>
-<span id="cb32-29"><a href="#cb32-29" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">"Future distribution"</span>)</span>
-<span id="cb32-30"><a href="#cb32-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-31"><a href="#cb32-31" aria-hidden="true" tabindex="-1"></a><span class="co"># Only plot areas where probability of occurrence is greater than the threshold</span></span>
-<span id="cb32-32"><a href="#cb32-32" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(forecast_presence <span class="sc">&gt;</span> glm_threshold, </span>
-<span id="cb32-33"><a href="#cb32-33" aria-hidden="true" tabindex="-1"></a>     <span class="at">add =</span> <span class="cn">TRUE</span>, </span>
-<span id="cb32-34"><a href="#cb32-34" aria-hidden="true" tabindex="-1"></a>     <span class="at">legend =</span> <span class="cn">FALSE</span>, </span>
-<span id="cb32-35"><a href="#cb32-35" aria-hidden="true" tabindex="-1"></a>     <span class="at">col =</span> <span class="fu">c</span>(<span class="cn">NA</span>, <span class="st">"orange"</span>))</span>
-<span id="cb32-36"><a href="#cb32-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-37"><a href="#cb32-37" aria-hidden="true" tabindex="-1"></a><span class="co"># And add those observations</span></span>
-<span id="cb32-38"><a href="#cb32-38" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(<span class="at">x =</span> ArnMon_presences<span class="sc">$</span>longitude, </span>
-<span id="cb32-39"><a href="#cb32-39" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> ArnMon_presences<span class="sc">$</span>latitude, </span>
-<span id="cb32-40"><a href="#cb32-40" aria-hidden="true" tabindex="-1"></a>       <span class="at">col =</span> <span class="st">"black"</span>,</span>
-<span id="cb32-41"><a href="#cb32-41" aria-hidden="true" tabindex="-1"></a>       <span class="at">pch =</span> <span class="st">"+"</span>, </span>
-<span id="cb32-42"><a href="#cb32-42" aria-hidden="true" tabindex="-1"></a>       <span class="at">cex =</span> <span class="fl">0.6</span>)</span>
-<span id="cb32-43"><a href="#cb32-43" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-44"><a href="#cb32-44" aria-hidden="true" tabindex="-1"></a><span class="co"># Redraw those country borders</span></span>
-<span id="cb32-45"><a href="#cb32-45" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(Europe_map, <span class="at">add =</span> <span class="cn">TRUE</span>, <span class="at">border =</span> <span class="st">"grey5"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="do">## for current potential distribution</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(Europe_map, </span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>     <span class="at">axes =</span> <span class="cn">TRUE</span>, </span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>     <span class="at">col =</span> <span class="st">"grey95"</span>,</span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">"Current distribution"</span>)</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Only plot areas where probability of occurrence is greater than the threshold</span></span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(predict_ArnMon <span class="sc">&gt;</span> glm_threshold, </span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>     <span class="at">add =</span> <span class="cn">TRUE</span>, </span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>     <span class="at">legend =</span> <span class="cn">FALSE</span>, </span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a>     <span class="at">col =</span> <span class="fu">c</span>(<span class="cn">NA</span>, <span class="st">"orange"</span>))</span>
+<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a><span class="co"># And add those observations</span></span>
+<span id="cb29-15"><a href="#cb29-15" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(<span class="at">x =</span> ArnMon_presences<span class="sc">$</span>longitude, </span>
+<span id="cb29-16"><a href="#cb29-16" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> ArnMon_presences<span class="sc">$</span>latitude, </span>
+<span id="cb29-17"><a href="#cb29-17" aria-hidden="true" tabindex="-1"></a>       <span class="at">col =</span> <span class="st">"black"</span>,</span>
+<span id="cb29-18"><a href="#cb29-18" aria-hidden="true" tabindex="-1"></a>       <span class="at">pch =</span> <span class="st">"+"</span>, </span>
+<span id="cb29-19"><a href="#cb29-19" aria-hidden="true" tabindex="-1"></a>       <span class="at">cex =</span> <span class="fl">0.75</span>)</span>
+<span id="cb29-20"><a href="#cb29-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-21"><a href="#cb29-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Redraw those country borders</span></span>
+<span id="cb29-22"><a href="#cb29-22" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(Europe_map, <span class="at">add =</span> <span class="cn">TRUE</span>, <span class="at">border =</span> <span class="st">"grey5"</span>)</span>
+<span id="cb29-23"><a href="#cb29-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-24"><a href="#cb29-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-25"><a href="#cb29-25" aria-hidden="true" tabindex="-1"></a><span class="do">## for future potential distribution</span></span>
+<span id="cb29-26"><a href="#cb29-26" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(Europe_map, </span>
+<span id="cb29-27"><a href="#cb29-27" aria-hidden="true" tabindex="-1"></a>     <span class="at">axes =</span> <span class="cn">TRUE</span>, </span>
+<span id="cb29-28"><a href="#cb29-28" aria-hidden="true" tabindex="-1"></a>     <span class="at">col =</span> <span class="st">"grey95"</span>,</span>
+<span id="cb29-29"><a href="#cb29-29" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">"Future distribution"</span>)</span>
+<span id="cb29-30"><a href="#cb29-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-31"><a href="#cb29-31" aria-hidden="true" tabindex="-1"></a><span class="co"># Only plot areas where probability of occurrence is greater than the threshold</span></span>
+<span id="cb29-32"><a href="#cb29-32" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(forecast_presence <span class="sc">&gt;</span> glm_threshold, </span>
+<span id="cb29-33"><a href="#cb29-33" aria-hidden="true" tabindex="-1"></a>     <span class="at">add =</span> <span class="cn">TRUE</span>, </span>
+<span id="cb29-34"><a href="#cb29-34" aria-hidden="true" tabindex="-1"></a>     <span class="at">legend =</span> <span class="cn">FALSE</span>, </span>
+<span id="cb29-35"><a href="#cb29-35" aria-hidden="true" tabindex="-1"></a>     <span class="at">col =</span> <span class="fu">c</span>(<span class="cn">NA</span>, <span class="st">"orange"</span>))</span>
+<span id="cb29-36"><a href="#cb29-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-37"><a href="#cb29-37" aria-hidden="true" tabindex="-1"></a><span class="co"># And add those observations</span></span>
+<span id="cb29-38"><a href="#cb29-38" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(<span class="at">x =</span> ArnMon_presences<span class="sc">$</span>longitude, </span>
+<span id="cb29-39"><a href="#cb29-39" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> ArnMon_presences<span class="sc">$</span>latitude, </span>
+<span id="cb29-40"><a href="#cb29-40" aria-hidden="true" tabindex="-1"></a>       <span class="at">col =</span> <span class="st">"black"</span>,</span>
+<span id="cb29-41"><a href="#cb29-41" aria-hidden="true" tabindex="-1"></a>       <span class="at">pch =</span> <span class="st">"+"</span>, </span>
+<span id="cb29-42"><a href="#cb29-42" aria-hidden="true" tabindex="-1"></a>       <span class="at">cex =</span> <span class="fl">0.6</span>)</span>
+<span id="cb29-43"><a href="#cb29-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-44"><a href="#cb29-44" aria-hidden="true" tabindex="-1"></a><span class="co"># Redraw those country borders</span></span>
+<span id="cb29-45"><a href="#cb29-45" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(Europe_map, <span class="at">add =</span> <span class="cn">TRUE</span>, <span class="at">border =</span> <span class="st">"grey5"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -682,27 +675,27 @@ max value   :  TRUE </code></pre>
 </figure>
 </div>
 </div>
-<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="final-map" class="level2">
 <h2 class="anchored" data-anchor-id="final-map">Final map</h2>
 <p>Our predictions are ready so we can now take the time to build a beautiful map. Here is one example using `<code>ggplot</code>`.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co"># for ggplot transform raster to df</span></span>
-<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>predict_ArnMon_df <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(predict_ArnMon, <span class="at">xy =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
-<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_raster</span>(<span class="at">data =</span> predict_ArnMon_df, </span>
-<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>              <span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">y =</span> y, </span>
-<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a>                  <span class="at">fill =</span> lyr1)) <span class="sc">+</span></span>
-<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotation_spatial</span>(Europe_map, <span class="at">fill =</span> <span class="cn">NA</span>, <span class="at">colour =</span> <span class="st">"black"</span>)<span class="sc">+</span></span>
-<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_viridis_c</span>() <span class="sc">+</span>  </span>
-<span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">"Realised niche"</span>) <span class="sc">+</span></span>
-<span id="cb34-12"><a href="#cb34-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()<span class="sc">+</span></span>
-<span id="cb34-13"><a href="#cb34-13" aria-hidden="true" tabindex="-1"></a>  <span class="co"># annotation_north_arrow(location = "tr", which_north = "true")+ # add north arrow</span></span>
-<span id="cb34-14"><a href="#cb34-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotation_scale</span>(<span class="at">location =</span> <span class="st">"tl"</span>) <span class="co"># add scale</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># for ggplot transform raster to df</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>predict_ArnMon_df <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(predict_ArnMon, <span class="at">xy =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_raster</span>(<span class="at">data =</span> predict_ArnMon_df, </span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>              <span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">y =</span> y, </span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>                  <span class="at">fill =</span> lyr1)) <span class="sc">+</span></span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotation_spatial</span>(Europe_map, <span class="at">fill =</span> <span class="cn">NA</span>, <span class="at">colour =</span> <span class="st">"black"</span>)<span class="sc">+</span></span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_viridis_c</span>() <span class="sc">+</span>  </span>
+<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">"Realised niche"</span>) <span class="sc">+</span></span>
+<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()<span class="sc">+</span></span>
+<span id="cb31-13"><a href="#cb31-13" aria-hidden="true" tabindex="-1"></a>  <span class="co"># annotation_north_arrow(location = "tr", which_north = "true")+ # add north arrow</span></span>
+<span id="cb31-14"><a href="#cb31-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotation_scale</span>(<span class="at">location =</span> <span class="st">"tl"</span>) <span class="co"># add scale</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Scale on map varies by more than 10%, scale bar may be inaccurate</code></pre>
 </div>
@@ -718,12 +711,12 @@ max value   :  TRUE </code></pre>
 <section id="save-results" class="level2">
 <h2 class="anchored" data-anchor-id="save-results">Save results</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">writeRaster</span>(predict_ArnMon,</span>
-<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>            <span class="st">"./output/2024_09_24_ArnMon_current_distribution.tif"</span>,</span>
-<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>            <span class="at">overwrite =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a><span class="fu">writeRaster</span>(forecast_presence,</span>
-<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>            <span class="st">"./output/2024_09_24_ArnMon_future_distribution.tif"</span>,</span>
-<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>            <span class="at">overwrite =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">writeRaster</span>(predict_ArnMon,</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>            <span class="st">"./output/2024_09_24_ArnMon_current_distribution.tif"</span>,</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>            <span class="at">overwrite =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a><span class="fu">writeRaster</span>(forecast_presence,</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>            <span class="st">"./output/2024_09_24_ArnMon_future_distribution.tif"</span>,</span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>            <span class="at">overwrite =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="tutorials" class="level2">
@@ -741,8 +734,8 @@ max value   :  TRUE </code></pre>
 <p>To practice building correlative SDMs please solve any of the tasks below. If you have a lot of time left feel free to start another task. The difficulty increases from task 1 to task 3. While building your SDM ask any question you would like.</p>
 <ul>
 <li><p>Task 1: Change the study area and target species and build your own SDM.</p></li>
-<li><p>Task 2: Use two different climate change scenario to predict the potential distribution of your target species and compare the results.</p></li>
-<li><p>Task 3 (advanced): Build SDMs (based on an ensemble model of different models of your choice) for several species in parallel using the `<code>biomod2</code>` package. You can find information about the package and its new release under the following link: <a href="https://cran.r-project.org/web/packages/biomod2/biomod2.pdf" class="uri">https://cran.r-project.org/web/packages/biomod2/biomod2.pdf</a>, <a href="https://biomodhub.github.io/biomod2/" class="uri">https://biomodhub.github.io/biomod2/</a>.</p></li>
+<li><p>Task 2: Use two different climate change scenarios to predict the potential distribution of your target species and compare the results.</p></li>
+<li><p>Task 3 (advanced): Build SDMs (based on an ensemble model of different models of your choice) for several species in parallel using the `<code>biomod2</code>` package. You can find information about the package and its new release under the following links: <a href="https://cran.r-project.org/web/packages/biomod2/biomod2.pdf" class="uri">https://cran.r-project.org/web/packages/biomod2/biomod2.pdf</a>, <a href="https://biomodhub.github.io/biomod2/" class="uri">https://biomodhub.github.io/biomod2/</a>.</p></li>
 </ul>
 <p>Please upload a figure of your SDM under the following link: <a href="https://board.net/p/Quantitative_Ecology_SDMs" class="uri">https://board.net/p/Quantitative_Ecology_SDMs</a>. In bulletpoints you can add any difficulties you faced while building your SDM. Your can proudly present your results in class at the end of the SDM II session.</p>
 </section>

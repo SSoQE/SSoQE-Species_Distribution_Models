@@ -1,6 +1,6 @@
 ---
 title: "Species distribution modelling in R"
-author: "Anna Walentowitz"
+author: "Dr Anna Walentowitz"
 date: 2024-09-20
 format: html
 editor: visual
@@ -10,6 +10,8 @@ editor: visual
 
 In this session we want to learn how to build a correlative species distribution model (sdm) in R for a single species. We want to predict the current (potential) distribution of a species and in a next step its potential distribution under changed climatic conditions.
 
+Note: For reasons of simplicity the term realized niche will be used throughout the document although the model might be closer to another niche concept.
+
 In this example, we want to predict the potential distribution of the herbaceous plant species *Arnica montana* in Europe now and under climate change. As a model we will use a simple generalised linear model (glm).
 
 ::: callout-note
@@ -17,7 +19,7 @@ In this example, we want to predict the potential distribution of the herbaceous
 
 The herbaceous plant species *Arnica montana* (family Asteraceae) is native to Europe and known for its medicinal application. If you want You can find additional information about the species on, for example, [Plants of the World Online, *Arnica montana*](https://powo.science.kew.org/taxon/urn:lsid:ipni.org:names:30090722-2). In the picture below you can see *Arnica montana* flowering in yellow.
 
-![](images/e7776f383aa75dc28b37d5148857a8c2.jpg)
+![](images/e7776f383aa75dc28b37d5148857a8c2.jpg){fig-align="center" width="183"}
 :::
 
 ## Basic steps
@@ -191,7 +193,7 @@ points(x = gbif_ArnMon$decimalLongitude,
 
 Species distribution data from gbif needs to undergo quality control as the input data is based on a multitude of different sources. By downloading only data that has coordinates and is based on human observations we already filtered the occurrence records. The following steps can furthermore be implemented to analyse and enhance data quality.
 
-```{r warnings=FALSE}
+```{r warning=FALSE}
 # diplay uncertainty of occurrence records (in meters)
 ggplot(gbif_ArnMon, aes(x = coordinateUncertaintyInMeters)) +
   geom_histogram(bins = 1e2) +
@@ -478,8 +480,8 @@ To practice building correlative SDMs please solve any of the tasks below. If yo
 
 -   Task 1: Change the study area and target species and build your own SDM.
 
--   Task 2: Use two different climate change scenario to predict the potential distribution of your target species and compare the results.
+-   Task 2: Use two different climate change scenarios to predict the potential distribution of your target species and compare the results.
 
--   Task 3 (advanced): Build SDMs (based on an ensemble model of different models of your choice) for several species in parallel using the \``biomod2`\` package. You can find information about the package and its new release under the following link: <https://cran.r-project.org/web/packages/biomod2/biomod2.pdf>, <https://biomodhub.github.io/biomod2/>.
+-   Task 3 (advanced): Build SDMs (based on an ensemble model of different models of your choice) for several species in parallel using the \``biomod2`\` package. You can find information about the package and its new release under the following links: <https://cran.r-project.org/web/packages/biomod2/biomod2.pdf>, <https://biomodhub.github.io/biomod2/>.
 
 Please upload a figure of your SDM under the following link: <https://board.net/p/Quantitative_Ecology_SDMs>. In bulletpoints you can add any difficulties you faced while building your SDM. Your can proudly present your results in class at the end of the SDM II session.
