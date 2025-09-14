@@ -121,6 +121,13 @@ bioclim_data <- worldclim_global(var = "bio",
                                  res = 5,
                                  path = here("data"))
 
+#access from repo if download is too slow
+#files <- list.files(here("data_predownloaded", 
+#                                  "climate",
+#                                  "wc2.1_5m"), 
+#                    full.names = TRUE)
+#bioclim_data2 <- terra::rast(files)
+
 # plot data for first visual impression
 plot(bioclim_data)
 
@@ -143,6 +150,10 @@ gbif_ArnMon_download <- occ_data(scientificName = "Arnica montana",
                                  year="1999,2005",
                                  # country = "DE",
                                  basisOfRecord = "HUMAN_OBSERVATION")
+
+#access from repo if download is too slow
+# gbif_ArnMon_download <- readr::read_rds(here("data_predownloaded",
+#    "gbif_ArnMon_download.rds"))
 
 # extract data
 gbif_ArnMon <- gbif_ArnMon_download$data
@@ -333,7 +344,12 @@ forecast_data <- cmip6_world(model = "MPI-ESM1-2-HR",
                              time = "2061-2080",
                              var = "bioc",
                              res = 5,
-                             path = "data")
+                             path = here("data"))
+
+#load from repo if download is too slow
+# forecast_data <- readr::read_rds(here("data_prwdownloaded",
+#  "gadm",
+#  "gadm36_adm0_r2_pk.rds"))
 
 # use the same names from bioclim_data also for the forecasted climate data
 names(forecast_data) <- names(bioclim_data)
